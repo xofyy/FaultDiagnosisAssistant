@@ -1,0 +1,32 @@
+Renault Clio 2017 - Arıza Teşhis Kılavuzu
+
+Bölüm 1: Motor Sorunları
+
+1.1 Gaz Yememe ve Titreme
+Belirtiler: Araç hızlanırken kesiklik yapıyor, rölantide titriyor.
+Olası Sebepler:
+- Ateşleme bobini arızası: Genellikle silindirlerden biri çalışmadığında olur.
+- Buji kirlenmesi: Bujilerin ömrü dolmuş olabilir.
+- Boğaz kelebeği kirlenmesi: Hava akışını bozar.
+- Enjektör tıkanıklığı: Yakıt püskürtme düzensizleşir.
+
+Çözüm Adımları:
+1. Bujileri kontrol edin ve gerekirse değiştirin.
+2. Ateşleme bobinlerini test edin.
+3. Boğaz kelebeğini temizleyin.
+4. Yakıt katkısı kullanarak enjektörleri temizlemeyi deneyin.
+
+1.2 Motor Işığı (Check Engine) Yanıyor
+Belirtiler: Gösterge panelinde sarı motor simgesi.
+Olası Sebepler:
+- Oksijen sensörü (Lambda sensörü) arızası.
+- Katalitik konvertör verimsizliği.
+- Hava akış metre (MAF) sensörü arızası.
+
+Çözüm Adımları:
+1. OBD-II cihazı ile hata kodunu okuyun.
+2. Sensör bağlantılarını kontrol edin.
+3. Egzoz sisteminde kaçak olup olmadığına bakın.
+
+Bölüm 2: Fren Sistemi
+...
