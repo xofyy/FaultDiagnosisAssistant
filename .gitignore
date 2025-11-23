@@ -53,7 +53,5 @@ StyleCop.Cache
 
 # Qdrant storage (local volume)
 qdrant_storage/
-
-# Existing ignores
-/implementation_plan.md
-/task.md
+implementation_plan.md
+task.md

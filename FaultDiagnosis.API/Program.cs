@@ -5,6 +5,9 @@ using Qdrant.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Enable gRPC over HTTP
+AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

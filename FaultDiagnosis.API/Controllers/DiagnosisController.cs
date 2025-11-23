@@ -37,10 +37,11 @@ namespace FaultDiagnosis.API.Controllers
             // 3. Construct Prompt
             var context = string.Join("\n\n", relevantChunks.Select(c => $"Source: {c.SourceFile}\nContent: {c.Content}"));
             
-            var systemPrompt = "You are an expert automotive fault diagnosis assistant. " +
-                               "Use the provided context to diagnose the issue. " +
-                               "If the context doesn't contain the answer, use your general knowledge but mention that it's not from the manual. " +
-                               "Format your response clearly with 'Probable Causes' and 'Action Steps'.";
+            var systemPrompt = "Sen uzman bir otomotiv arıza teşhis asistanısın. " +
+                               "Verilen bağlamı (context) kullanarak sorunu teşhis et. " +
+                               "Eğer bağlamda cevap yoksa, genel bilgini kullan ancak bunun kılavuzdan olmadığını açıkça belirt. " +
+                               "Cevabını 'Olası Sebepler' ve 'Çözüm Adımları' başlıklarıyla net bir şekilde formatla. " +
+                               "ÖNEMLİ: Her zaman Türkçe yanıt ver.";
 
             var userPrompt = $"Vehicle: {request.VehicleInfo}\nSymptom: {request.Symptom}\n\nContext:\n{context}";
 
