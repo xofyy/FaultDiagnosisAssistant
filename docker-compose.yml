@@ -10,3 +10,34 @@ services:
     volumes:
       - ./qdrant_storage:/qdrant/storage:z
     restart: always
+
+  api:
+    build:
+      context: .
+      dockerfile: FaultDiagnosis.API/Dockerfile
+    container_name: fault-diagnosis-api
+    ports:
+      - "8080:8080"
+    environment:
+      - FaultDiagnosis__OllamaUrl=http://host.docker.internal:11434
+      - FaultDiagnosis__QdrantUrl=http://qdrant:6334
+    depends_on:
+      - qdrant
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  pipeline:
+    build:
+      context: .
+      dockerfile: FaultDiagnosis.DataPipeline/Dockerfile
+    container_name: fault-diagnosis-pipeline
+    environment:
+      - FaultDiagnosis__OllamaUrl=http://host.docker.internal:11434
+      - FaultDiagnosis__QdrantUrl=http://qdrant:6334
+    volumes:
+      - ./docs:/app/docs
+    depends_on:
+      - qdrant
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: on-failure

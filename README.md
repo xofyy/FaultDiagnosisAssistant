@@ -1,74 +1,78 @@
-# Fault Diagnosis Assistant (Arıza Teşhis Asistanı)
+# Fault Diagnosis Assistant
 
-Bu proje, **RAG (Retrieval-Augmented Generation)** mimarisi kullanarak araç arızalarını teşhis eden bir yapay zeka asistanıdır. Kullanıcı şikayetlerini ve araç bilgilerini alır, ilgili teknik dökümanları tarar ve LLM (Llama 3.1) kullanarak çözüm önerileri sunar.
+This project is an AI assistant that diagnoses vehicle faults using **RAG (Retrieval-Augmented Generation)** architecture. It takes user complaints and vehicle information, scans relevant technical documents, and provides solution suggestions using an LLM (Llama 3.1).
 
-## 🚀 Teknolojiler
+## 🚀 Technologies
 
-*   **.NET 8**: Backend API ve Data Pipeline.
-*   **Ollama**: Lokal LLM (Llama 3.1) ve Embedding (nomic-embed-text) servisi.
-*   **Qdrant**: Vektör veritabanı (Docker üzerinde çalışır).
-*   **Docker**: Qdrant servisi için.
+*   **.NET 10**: Backend API and Data Pipeline.
+*   **Ollama**: Local LLM (Llama 3.1) and Embedding (nomic-embed-text) service.
+*   **Qdrant**: Vector database (runs on Docker).
+*   **Docker**: For running the Qdrant service.
 
-## ⚙️ Gereksinimler
+## ⚙️ Requirements
 
-1.  **.NET 8 SDK**: [İndir](https://dotnet.microsoft.com/download/dotnet/8.0)
-2.  **Docker Desktop**: Qdrant'ı çalıştırmak için.
-3.  **Ollama**: [İndir](https://ollama.com/)
-    *   Gerekli modelleri çekin:
+1.  **.NET 10 SDK**: [Download](https://dotnet.microsoft.com/download/dotnet/10.0)
+2.  **Docker Desktop**: Required to run Qdrant.
+3.  **Ollama**: [Download](https://ollama.com/)
+    *   Pull the required models:
         ```bash
+        ollama pull llama3.1
         ollama pull llama3.1
         ollama pull nomic-embed-text
         ```
 
-## 🛠️ Kurulum ve Çalıştırma
-
-### 1. Vektör Veritabanını Başlatın
-Proje dizininde terminali açın ve Qdrant'ı ayağa kaldırın:
-```bash
-docker-compose up -d
+### Optional: Cloud LLM (OpenAI)
+To use OpenAI instead of Ollama, update `appsettings.json` or use environment variables:
+```json
+"FaultDiagnosis": {
+  "LLMProvider": "OpenAI",
+  "ApiKey": "sk-...",
+  "GenerationModel": "gpt-4o",
+  "EmbeddingModel": "text-embedding-3-small"
+}
 ```
 
-### 2. Veri Yükleme (Data Pipeline)
-Dökümanları işleyip vektör veritabanına yüklemek için:
-1.  `docs/` klasörüne `.txt` formatında araç kılavuzlarını veya teknik dökümanları ekleyin (Örnek: `renault_clio_manual.txt`).
-2.  Pipeline'ı çalıştırın:
-    ```bash
-    dotnet run --project FaultDiagnosis.DataPipeline/FaultDiagnosis.DataPipeline.csproj
-    ```
+## 🛠️ Installation and Running
 
-### 3. API'yi Başlatın
-Web API servisini başlatmak için:
+### 1. Start the Application (Docker Compose)
+Start the entire system (API, Pipeline, Qdrant) with a single command:
 ```bash
-dotnet run --project FaultDiagnosis.API/FaultDiagnosis.API.csproj --urls=http://localhost:5000
+docker-compose up -d --build
 ```
 
-## 📡 Kullanım
+### 2. Data Ingestion
+The Pipeline service automatically processes files in the `docs/` folder. If you add new files, you can restart the pipeline service:
+```bash
+docker-compose restart pipeline
+```
 
-API çalışırken `POST` isteği göndererek teşhis alabilirsiniz.
+## 📡 Usage
 
-**Endpoint:** `http://localhost:5000/api/diagnosis`
+You can get a diagnosis by sending a `POST` request while the API is running.
 
-**Örnek İstek (JSON):**
+**Endpoint:** `http://localhost:8080/api/diagnosis`
+
+**Example Request (JSON):**
 ```json
 {
-  "symptom": "Gaz yememe ve titreme var, motor ışığı da yanıyor.",
+  "symptom": "Engine is misfiring and shaking, check engine light is on.",
   "vehicleInfo": "Renault Clio 2017"
 }
 ```
 
-**Örnek Yanıt:**
+**Example Response:**
 ```json
 {
-    "diagnosis": "**Olası Sebepler**\n* Ateşleme bobini arızası...\n\n**Çözüm Adımları**\n1. Bujileri kontrol edin...",
+    "diagnosis": "**Possible Causes**\n* Ignition coil failure...\n\n**Solution Steps**\n1. Check the spark plugs...",
     "relatedDocuments": [
         "renault_clio_manual.txt"
     ]
 }
 ```
 
-## 📂 Proje Yapısı
+## 📂 Project Structure
 
-*   **FaultDiagnosis.Core**: Temel varlıklar (Entities) ve arayüzler (Interfaces).
-*   **FaultDiagnosis.Infrastructure**: Ollama ve Qdrant entegrasyonları.
-*   **FaultDiagnosis.API**: Dış dünyaya açılan REST API.
-*   **FaultDiagnosis.DataPipeline**: Dökümanları okuyup vektörleştiren konsol uygulaması.
+*   **FaultDiagnosis.Core**: Core entities and interfaces.
+*   **FaultDiagnosis.Infrastructure**: Ollama and Qdrant integrations.
+*   **FaultDiagnosis.API**: REST API exposed to the outside world.
+*   **FaultDiagnosis.DataPipeline**: Console application that reads and vectorizes documents.

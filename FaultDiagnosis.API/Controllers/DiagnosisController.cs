@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using FaultDiagnosis.API.Models;
 using FaultDiagnosis.Core.Entities;
 using FaultDiagnosis.Core.Interfaces;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FaultDiagnosis.API.Controllers
@@ -13,20 +14,24 @@ namespace FaultDiagnosis.API.Controllers
     {
         private readonly ILLMClient _llmClient;
         private readonly IVectorStore _vectorStore;
+        private readonly IValidator<DiagnosisRequest> _validator;
 
-        public DiagnosisController(ILLMClient llmClient, IVectorStore vectorStore)
+        public DiagnosisController(ILLMClient llmClient, IVectorStore vectorStore, IValidator<DiagnosisRequest> validator)
         {
             _llmClient = llmClient;
             _vectorStore = vectorStore;
+            _validator = validator;
         }
 
         [HttpPost]
         public async Task<ActionResult<DiagnosisResult>> Diagnose([FromBody] DiagnosisRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Symptom))
+            var validationResult = await _validator.ValidateAsync(request);
+            if (!validationResult.IsValid)
             {
-                return BadRequest("Symptom is required.");
+                return BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
             }
+
 
             // 1. Generate embedding for the symptom
             var embedding = await _llmClient.GenerateEmbeddingAsync($"{request.VehicleInfo} {request.Symptom}");

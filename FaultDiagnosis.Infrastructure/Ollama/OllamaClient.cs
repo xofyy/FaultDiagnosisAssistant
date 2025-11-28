@@ -4,27 +4,28 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using FaultDiagnosis.Core.Configuration;
 using FaultDiagnosis.Core.Interfaces;
+using Microsoft.Extensions.Options;
 
 namespace FaultDiagnosis.Infrastructure.Ollama
 {
     public class OllamaClient : ILLMClient
     {
         private readonly HttpClient _httpClient;
-        private const string EmbeddingModel = "nomic-embed-text";
-        private const string GenerationModel = "llama3.1";
+        private readonly FaultDiagnosisSettings _settings;
 
-        public OllamaClient(HttpClient httpClient)
+        public OllamaClient(HttpClient httpClient, IOptions<FaultDiagnosisSettings> settings)
         {
             _httpClient = httpClient;
-            // Ensure BaseAddress is set in Program.cs/DI (e.g., http://localhost:11434)
+            _settings = settings.Value;
         }
 
         public async Task<float[]> GenerateEmbeddingAsync(string text)
         {
             var request = new
             {
-                model = EmbeddingModel,
+                model = _settings.EmbeddingModel,
                 prompt = text
             };
 
@@ -44,7 +45,7 @@ namespace FaultDiagnosis.Infrastructure.Ollama
             
             var request = new
             {
-                model = GenerationModel,
+                model = _settings.GenerationModel,
                 prompt = fullPrompt,
                 stream = false
             };

@@ -1,0 +1,4 @@
+Arıza: Motor Aşırı Isınması
+Belirtiler: Hararet göstergesi kırmızı bölgede, kaputtan buhar çıkıyor.
+Nedenler: Düşük soğutma sıvısı seviyesi, kopuk fan kayışı, sıkışmış termostat.
+Çözüm: Soğutma sıvısı seviyesini kontrol edin ve gerekirse tamamlayın. Fan kayışının gerginliğini kontrol edin. Termostat sıkışmışsa değiştirin.
