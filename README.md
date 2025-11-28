@@ -17,7 +17,6 @@ This project is an AI assistant that diagnoses vehicle faults using **RAG (Retri
     *   Pull the required models:
         ```bash
         ollama pull llama3.1
-        ollama pull llama3.1
         ollama pull nomic-embed-text
         ```
 
