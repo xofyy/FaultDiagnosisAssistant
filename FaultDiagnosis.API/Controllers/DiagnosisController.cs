@@ -32,15 +32,37 @@ namespace FaultDiagnosis.API.Controllers
                 return BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
             }
 
+            // 0. Query Expansion
+            var expansionPrompt = $"Sen uzman bir otomotiv teknisyenisin. Bu belirti için arama sorgusunda kullanılabilecek 3-5 teknik eş anlamlı kelime, ilgili parça adı veya olası arıza modu öner. SADECE anahtar kelimeleri virgülle ayırarak döndür, başka hiçbir metin ekleme.\n\nAraç: {request.VehicleInfo}\nBelirti: {request.Symptom}";
+            var expandedTerms = await _llmClient.GenerateCompletionAsync(expansionPrompt);
+            var searchContext = $"{request.VehicleInfo} {request.Symptom} {expandedTerms}";
 
-            // 1. Generate embedding for the symptom
-            var embedding = await _llmClient.GenerateEmbeddingAsync($"{request.VehicleInfo} {request.Symptom}");
+            // 1. Generate embedding for the expanded query
+            var embedding = await _llmClient.GenerateEmbeddingAsync(searchContext);
 
-            // 2. Retrieve relevant documents
-            var relevantChunks = await _vectorStore.SearchAsync(embedding, limit: 3);
+            // 2. Retrieve relevant documents (Initial Retrieval)
+            var initialChunks = await _vectorStore.SearchAsync(embedding, limit: 10);
 
-            // 3. Construct Prompt
-            var context = string.Join("\n\n", relevantChunks.Select(c => $"Source: {c.SourceFile}\nContent: {c.Content}"));
+            // 3. Re-ranking
+            var rankingPrompt = "Sen yardımcı bir asistansın. Verilen döküman parçalarını sorguyla olan alaka düzeyine göre sırala.\n" +
+                                $"Sorgu: {request.VehicleInfo} {request.Symptom}\n\n" +
+                                "İşte döküman parçaları:\n" +
+                                string.Join("\n", initialChunks.Select((c, i) => $"[{i}] {c.Content.Substring(0, Math.Min(100, c.Content.Length))}...")) +
+                                "\n\nEn alakalı 3 parçanın indeks numaralarını virgülle ayrılmış bir liste olarak döndür (örneğin: 0,2,5). SADECE sayıları döndür.";
+            
+            var rankedIndicesStr = await _llmClient.GenerateCompletionAsync(rankingPrompt);
+            var rankedIndices = (rankedIndicesStr ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(s => int.TryParse(s.Trim(), out var n) ? n : -1)
+                                                .Where(n => n >= 0 && n < initialChunks.Count)
+                                                .Take(3)
+                                                .ToList();
+
+            var finalChunks = rankedIndices.Any() 
+                ? rankedIndices.Select(i => initialChunks[i]).ToList() 
+                : initialChunks.Take(3).ToList(); // Fallback to top 3 if re-ranking fails
+
+            // 4. Construct Prompt
+            var context = string.Join("\n\n", finalChunks.Select(c => $"Kaynak: {c.SourceFile}\nİçerik: {c.Content}"));
             
             var systemPrompt = "Sen uzman bir otomotiv arıza teşhis asistanısın. " +
                                "Verilen bağlamı (context) kullanarak sorunu teşhis et. " +
@@ -48,15 +70,15 @@ namespace FaultDiagnosis.API.Controllers
                                "Cevabını 'Olası Sebepler' ve 'Çözüm Adımları' başlıklarıyla net bir şekilde formatla. " +
                                "ÖNEMLİ: Her zaman Türkçe yanıt ver.";
 
-            var userPrompt = $"Vehicle: {request.VehicleInfo}\nSymptom: {request.Symptom}\n\nContext:\n{context}";
+            var userPrompt = $"Araç: {request.VehicleInfo}\nBelirti: {request.Symptom}\n\nBağlam:\n{context}";
 
-            // 4. Generate Response
+            // 5. Generate Response
             var response = await _llmClient.GenerateCompletionAsync(userPrompt, systemPrompt);
 
             return Ok(new DiagnosisResult
             {
                 Diagnosis = response,
-                RelatedDocuments = relevantChunks.Select(c => c.SourceFile).Distinct().ToList()
+                RelatedDocuments = finalChunks.Select(c => c.SourceFile).Distinct().ToList()
             });
         }
     }

@@ -36,9 +36,18 @@ namespace FaultDiagnosis.DataPipeline
             string docsPath = Path.Combine(Directory.GetCurrentDirectory(), "docs");
             if (!Directory.Exists(docsPath))
             {
-                Directory.CreateDirectory(docsPath);
-                logger.LogWarning($"Created docs directory at {docsPath}. Please put some text files there.");
-                return;
+                // Try parent directory (for local dev where docs is in root)
+                var parentDocs = Path.Combine(Directory.GetCurrentDirectory(), "..", "docs");
+                if (Directory.Exists(parentDocs))
+                {
+                    docsPath = parentDocs;
+                }
+                else
+                {
+                    Directory.CreateDirectory(docsPath);
+                    logger.LogWarning($"Created docs directory at {docsPath}. Please put some text files there.");
+                    return;
+                }
             }
 
             // Ensure collection exists

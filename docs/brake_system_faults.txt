@@ -1,0 +1,4 @@
+Arıza: Fren Sistemi Sorunları
+Belirtiler: Fren yaparken ses gelmesi (gıcırtı, uğultu), fren pedalının yumuşaması veya sertleşmesi, aracın frenleme sırasında sağa/sola çekmesi.
+Nedenler: Aşınmış fren balataları, bitmiş fren diskleri, eski veya eksik fren hidroliği, hava yapmış fren sistemi, sıkışmış fren kaliperleri.
+Çözüm: Fren balatalarını ve disklerini kontrol edin, gerekirse değiştirin. Fren hidroliği seviyesini ve kalitesini kontrol edin. Fren sisteminin havasını alın. Kaliper pimlerini yağlayın.

@@ -36,9 +36,8 @@ namespace FaultDiagnosis.API
 
             // Configuration
             builder.Services.Configure<FaultDiagnosisSettings>(builder.Configuration.GetSection("FaultDiagnosis"));
-            var settings = builder.Configuration.GetSection("FaultDiagnosis").Get<FaultDiagnosisSettings>();
+            var settings = builder.Configuration.GetSection("FaultDiagnosis").Get<FaultDiagnosisSettings>() ?? new FaultDiagnosisSettings();
 
-            // Infrastructure Services
             // Infrastructure Services
             if (settings.LLMProvider.Equals("OpenAI", StringComparison.OrdinalIgnoreCase))
             {
@@ -73,7 +72,11 @@ namespace FaultDiagnosis.API
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            // Only enable HTTPS redirection if NOT running in a container
+            if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
+            {
+                app.UseHttpsRedirection();
+            }
 
             app.UseAuthorization();
 

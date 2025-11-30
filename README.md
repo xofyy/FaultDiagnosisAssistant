@@ -1,65 +1,97 @@
 # Fault Diagnosis Assistant
 
-This project is an AI assistant that diagnoses vehicle faults using **RAG (Retrieval-Augmented Generation)** architecture. It takes user complaints and vehicle information, scans relevant technical documents, and provides solution suggestions using an LLM (Llama 3.1).
+A .NET 10 application that uses AI to diagnose vehicle faults based on user symptoms and technical documents.
 
-## 🚀 Technologies
+## 🏗️ Architecture
 
-*   **.NET 10**: Backend API and Data Pipeline.
-*   **Ollama**: Local LLM (Llama 3.1) and Embedding (nomic-embed-text) service.
-*   **Qdrant**: Vector database (runs on Docker).
-*   **Docker**: For running the Qdrant service.
+The system follows a **Clean Architecture** pattern and consists of two main workflows:
 
-## ⚙️ Requirements
+### 1. Data Ingestion Pipeline
+This background process prepares the knowledge base:
+1.  **Read:** The `DataPipeline` console app reads text files from the `docs/` folder.
+2.  **Chunk & Enrich:** Files are split into smaller segments. The system automatically extracts titles and error codes (e.g., P0123) from the text to create structured metadata.
+3.  **Embed:** Each chunk is converted into a vector representation using the `nomic-embed-text` model via Ollama.
+4.  **Store:** Vectors and metadata are stored in **Qdrant** for fast similarity search.
 
-1.  **.NET 10 SDK**: [Download](https://dotnet.microsoft.com/download/dotnet/10.0)
-2.  **Docker Desktop**: Required to run Qdrant.
-3.  **Ollama**: [Download](https://ollama.com/)
-    *   Pull the required models:
-        ```bash
-        ollama pull llama3.1
-        ollama pull nomic-embed-text
-        ```
+### 2. Diagnosis API Flow
+When a user sends a diagnosis request:
+1.  **Query Expansion:** The API asks the LLM to generate technical synonyms for the user's symptom (e.g., "shaking" -> "misfire, vibration").
+2.  **Vector Search:** The expanded query is converted to a vector and used to find the top 10 most relevant document chunks in Qdrant.
+3.  **Re-ranking:** The LLM analyzes the 10 retrieved chunks and selects the top 3 that are most relevant to the specific vehicle and symptom.
+4.  **Generation:** The selected chunks are fed into the `llama3.1` model as context to generate a final, localized Turkish diagnosis and solution plan.
 
-### Optional: Cloud LLM (OpenAI)
-To use OpenAI instead of Ollama, update `appsettings.json` or use environment variables:
-```json
-"FaultDiagnosis": {
-  "LLMProvider": "OpenAI",
-  "ApiKey": "sk-...",
-  "GenerationModel": "gpt-4o",
-  "EmbeddingModel": "text-embedding-3-small"
-}
-```
+## 📂 Project Structure
 
-## 🛠️ Installation and Running
+The solution is organized into four projects:
 
-### 1. Start the Application (Docker Compose)
-Start the entire system (API, Pipeline, Qdrant) with a single command:
-```bash
-docker-compose up -d --build
-```
+### `FaultDiagnosis.Core`
+Contains the domain entities and abstractions. It has no dependencies on external libraries.
+*   **Entities:** `DocumentChunk` (stores text, embedding, and metadata).
+*   **Interfaces:** `IVectorStore`, `ILLMClient`, `IDocumentProcessor`.
+*   **Configuration:** `FaultDiagnosisSettings`.
 
-### 2. Data Ingestion
-The Pipeline service automatically processes files in the `docs/` folder. If you add new files, you can restart the pipeline service:
-```bash
-docker-compose restart pipeline
-```
+### `FaultDiagnosis.Infrastructure`
+Implements the interfaces defined in Core.
+*   **Ollama:** `OllamaClient` handles HTTP communication with the local Ollama instance for embeddings and completion.
+*   **Qdrant:** `QdrantVectorStore` manages vector storage and retrieval.
+*   **Services:** `TextDocumentProcessor` handles file reading and metadata extraction.
+
+### `FaultDiagnosis.API`
+The entry point for the application.
+*   **Controllers:** `DiagnosisController` orchestrates the entire RAG flow (Expansion -> Search -> Re-ranking -> Generation).
+*   **Program.cs:** Configures Dependency Injection, Logging (Serilog), and Swagger.
+
+### `FaultDiagnosis.DataPipeline`
+A console application responsible for populating the vector database.
+*   It scans the `docs/` directory, processes new files, and upserts them into Qdrant.
+
+## 🛠️ Technologies
+
+*   **.NET 10**
+*   **Ollama** (Llama 3.1 & Nomic Embed Text)
+*   **Qdrant** (Vector Database)
+*   **Docker** (Containerization)
+
+## 📋 Prerequisites
+
+*   [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+*   [Ollama](https://ollama.com/) installed locally.
+*   Pull required models:
+    ```bash
+    ollama pull llama3.1
+    ollama pull nomic-embed-text
+    ```
+
+## 🚀 How to Run
+
+1.  **Start the System:**
+    ```bash
+    docker-compose up -d --build
+    ```
+
+2.  **Ingest Data:**
+    The system automatically processes text files in the `docs/` folder. If you add new files, restart the pipeline:
+    ```bash
+    docker-compose restart pipeline
+    ```
 
 ## 📡 Usage
 
-You can get a diagnosis by sending a `POST` request while the API is running.
+Send a POST request to the API to get a diagnosis.
 
-**Endpoint:** `http://localhost:8080/api/diagnosis`
+*   **URL:** `http://localhost:8080/api/diagnosis`
+*   **Method:** `POST`
+*   **Content-Type:** `application/json`
 
-**Example Request (JSON):**
+**Request Body:**
 ```json
 {
-  "symptom": "Engine is misfiring and shaking, check engine light is on.",
-  "vehicleInfo": "Renault Clio 2017"
+  "vehicleInfo": "Renault Clio 2017",
+  "symptom": "Engine is shaking and check engine light is on."
 }
 ```
 
-**Example Response:**
+**Response:**
 ```json
 {
     "diagnosis": "**Possible Causes**\n* Ignition coil failure...\n\n**Solution Steps**\n1. Check the spark plugs...",
@@ -68,10 +100,3 @@ You can get a diagnosis by sending a `POST` request while the API is running.
     ]
 }
 ```
-
-## 📂 Project Structure
-
-*   **FaultDiagnosis.Core**: Core entities and interfaces.
-*   **FaultDiagnosis.Infrastructure**: Ollama and Qdrant integrations.
-*   **FaultDiagnosis.API**: REST API exposed to the outside world.
-*   **FaultDiagnosis.DataPipeline**: Console application that reads and vectorizes documents.

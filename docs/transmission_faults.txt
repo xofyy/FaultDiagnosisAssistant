@@ -1,0 +1,4 @@
+Arıza: Şanzıman ve Vites Sorunları
+Belirtiler: Vites geçişlerinde vuruntu, vitesin zor geçmesi, debriyaj kaçırması (devir artıyor ama hız artmıyor), şanzımandan uğultu gelmesi.
+Nedenler: Aşınmış debriyaj baskı balatası, eski şanzıman yağı, senkromeç arızası, şanzıman beyni arızası (otomatik vites), düşük şanzıman yağı seviyesi.
+Çözüm: Şanzıman yağı seviyesini ve durumunu kontrol edin. Debriyaj setini kontrol ettirin. Vites halatlarını ayarlayın. Otomatik şanzıman ise bilgisayarlı arıza tespiti yaptırın.

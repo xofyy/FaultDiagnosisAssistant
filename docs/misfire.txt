@@ -1,0 +1,7 @@
+Motor Tekleme Teşhisi (Misfire)
+Eğer rölantide titreme veya duraksama yaşıyorsanız, bu bir tekleme (misfire) olabilir.
+Yaygın nedenler arasında aşınmış bujiler, arızalı ateşleme bobinleri veya vakum kaçakları bulunur.
+Hata Kodu P0300 rastgele teklemeyi gösterir.
+Hata Kodu P0301 1. silindirde teklemeyi gösterir.
+Önce bujileri kontrol edin. Eğer kararmışlarsa değiştirin.
+Ateşleme bobinlerini çatlaklara karşı kontrol edin.

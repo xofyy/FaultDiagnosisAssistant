@@ -1,0 +1,4 @@
+Arıza: Elektrik Sistemi Sorunları
+Belirtiler: Marş basmıyor, akü ışığı yanıyor, farlar sönük yanıyor, sigorta atıyor, elektronik aksam (camlar, kilitler) çalışmıyor.
+Nedenler: Bitik veya ölü akü, arızalı şarj dinamosu (alternatör), gevşek akü kutup başları, patlak sigortalar, kısa devre, korozyona uğramış kablolar.
+Çözüm: Akü voltajını ölçün (12.6V olmalı). Şarj dinamosunun şarj edip etmediğini kontrol edin (çalışırken 13.5V-14.5V). Sigorta kutusunu kontrol edin ve yanık sigortaları değiştirin. Akü kutup başlarını temizleyin ve sıkın.
